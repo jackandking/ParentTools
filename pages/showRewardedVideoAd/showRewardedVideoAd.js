@@ -16,6 +16,9 @@ Page({
 		let result_page_id = options.result_page_id;
 		console.log('showRewardedVideoAd result_page_id:', result_page_id);
 
+		// 显示分享按钮
+		ks.showShareMenu();
+
 		this.showRewardedVideo(result_page_id);		
 	},
 
@@ -65,4 +68,11 @@ Page({
                     });
             });
     },
+    
+    onShareAppMessage: function () {
+        return {
+            title: '家长爱',
+            path: '/pages/showRewardedVideoAd/showRewardedVideoAd'
+        }
+    }
 })

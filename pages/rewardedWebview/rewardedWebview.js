@@ -19,6 +19,9 @@ Page({
         const target = options.target;
         console.log('rewardedWebview target:', target);
 
+        // 显示分享按钮
+        ks.showShareMenu();
+
         if (options.flow === 'rewarded') {
             this.showRewardedVideo(target);
         } else {
@@ -103,5 +106,12 @@ Page({
         interstitialAd.load().catch(err => {
             console.log('插屏广告加载失败', err);
         });
+    },
+    
+    onShareAppMessage: function () {
+        return {
+            title: '家长爱',
+            path: '/pages/rewardedWebview/rewardedWebview'
+        }
     }
 })
