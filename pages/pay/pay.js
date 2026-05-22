@@ -49,7 +49,7 @@ Page({
 
     fetchOrderAndPay: function (orderId) {
         this.setData({ paying: true, errorMsg: '' });
-        fetch('https://letmetry.cloud/api/pay/check-paid?orderId=' + encodeURIComponent(orderId))
+        fetch('https://letmetry.cloud/api/pay/check/' + encodeURIComponent(orderId))
             .then(res => res.json())
             .then(data => {
                 if (data.success && data.data && data.data.prepayId) {
