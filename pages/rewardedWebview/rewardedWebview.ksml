@@ -1,1 +1,1 @@
-<web-view src="{{webviewUrl}}"></web-view>
+<web-view src="{{webviewUrl}}" bindmessage="onMessage"></web-view>
