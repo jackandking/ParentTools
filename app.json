@@ -2,7 +2,8 @@
   "pages": [
     "pages/index/index",
     "pages/rewardedWebview/rewardedWebview",
-    "pages/showRewardedVideoAd/showRewardedVideoAd"
+    "pages/showRewardedVideoAd/showRewardedVideoAd",
+    "pages/pay/pay"
   ],
   "window": {
     "backgroundTextStyle": "light",
