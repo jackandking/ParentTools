@@ -108,6 +108,22 @@ Page({
         });
     },
     
+    onMessage: function (event) {
+        console.log('[rewardedWebview] onMessage:', event);
+        const { type, data } = event.detail || {};
+        if (type === 'REQUEST_PAYMENT' && data) {
+            const { orderId, appId, prepayId, nonceStr, timeStamp, sign, returnUrl } = data;
+            const payUrl = '/pages/pay/pay?orderId=' + encodeURIComponent(orderId || '') +
+                '&appId=' + encodeURIComponent(appId || '') +
+                '&prepayId=' + encodeURIComponent(prepayId || '') +
+                '&nonceStr=' + encodeURIComponent(nonceStr || '') +
+                '&timeStamp=' + encodeURIComponent(timeStamp || '') +
+                '&sign=' + encodeURIComponent(sign || '') +
+                '&returnUrl=' + encodeURIComponent(returnUrl || '');
+            ks.navigateTo({ url: payUrl });
+        }
+    },
+
     onShareAppMessage: function () {
         return {
             title: '家长爱',

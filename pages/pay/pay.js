@@ -21,15 +21,21 @@ Page({
             returnUrl
         } = options;
 
-        if (!orderId || !appId || !prepayId) {
-            this.setData({ errorMsg: '缺少支付参数' });
+        if (!orderId) {
+            this.setData({ errorMsg: '缺少订单号' });
             return;
         }
 
         this.setData({
             orderId,
-            returnUrl: returnUrl || ''
+            returnUrl: decodeURIComponent(returnUrl || '')
         });
+
+        // 如果缺少支付参数，尝试从后端获取
+        if (!appId || !prepayId) {
+            this.fetchOrderAndPay(orderId);
+            return;
+        }
 
         // 自动调起支付
         this.startPayment({
@@ -39,6 +45,29 @@ Page({
             timeStamp,
             sign
         });
+    },
+
+    fetchOrderAndPay: function (orderId) {
+        this.setData({ paying: true, errorMsg: '' });
+        fetch('https://letmetry.cloud/api/pay/check-paid?orderId=' + encodeURIComponent(orderId))
+            .then(res => res.json())
+            .then(data => {
+                if (data.success && data.data && data.data.prepayId) {
+                    this.startPayment(data.data);
+                } else {
+                    this.setData({
+                        paying: false,
+                        errorMsg: '获取支付参数失败'
+                    });
+                }
+            })
+            .catch(err => {
+                console.error('[pay page] fetch order failed:', err);
+                this.setData({
+                    paying: false,
+                    errorMsg: '网络错误，请重试'
+                });
+            });
     },
 
     startPayment: function (orderInfo) {
