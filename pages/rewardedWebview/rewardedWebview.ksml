@@ -1,1 +1,8 @@
-<web-view src="{{webviewUrl}}" bindmessage="onMessage"></web-view>
+<view class="container">
+  <web-view src="{{webviewUrl}}" class="webview"></web-view>
+  <view class="pay-bar" wx:if="{{showPayBtn}}">
+    <button class="pay-btn" bindtap="onPayTap">
+      ✨ 生成足迹图（¥1）
+    </button>
+  </view>
+</view>

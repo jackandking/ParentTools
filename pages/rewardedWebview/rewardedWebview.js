@@ -1,133 +1,155 @@
 const AD_CONFIG = {
-    rewarded: {
-        type: 100011056,
-        unitId: 100180751,
-    },
-    interstitial: {
-        type: 100033847,
-        unitId: 100180752,
-    },
     baseUrl: 'https://letmetryai.cn/'
 };
 
+const API_BASE = 'https://letmetry.cloud';
+
 Page({
     data: {
-        webviewUrl: ''
+        webviewUrl: '',
+        showPayBtn: false,
+        openid: '',
+        target: '',
+        paying: false
     },
+
     onLoad: function (options) {
-        console.log(options);
-        const target = options.target;
-        console.log('rewardedWebview target:', target);
+        console.log('[rewardedWebview] onLoad:', options);
+        const target = options.target || '';
+        const openid = options.openid || '';
 
         // 显示分享按钮
         ks.showShareMenu();
 
-        if (options.flow === 'rewarded') {
-            this.showRewardedVideo(target);
-        } else {
-            this.setData({
-                webviewUrl: `${AD_CONFIG.baseUrl}${target}`
-            });
+        // 判断是否是需要支付功能的页面
+        const isPayPage = target.includes('child-travel-map') || target.includes('parent-type-test');
 
-            if (options.showAd === 'true') {
-                this.showInterstitialAd();
-            }
+        this.setData({
+            target: target,
+            openid: openid,
+            webviewUrl: `${AD_CONFIG.baseUrl}${target}`,
+            showPayBtn: isPayPage
+        });
+
+        if (options.showAd === 'true') {
+            this.showInterstitialAd();
         }
     },
 
-    showRewardedVideo(target) {
-        const rewardedVideoAd = ks.createRewardedVideoAd({
-            type: AD_CONFIG.rewarded.type,
-            unitId: AD_CONFIG.rewarded.unitId,
-        });
-
-        rewardedVideoAd.onLoad(() => {
-            console.log('onLoad event emit');
-           
-        });
-
-        rewardedVideoAd.onError(({ errCode }) => {
-            console.log('onError event emit', errCode);
-            
-            this.setData({
-                webviewUrl: `${AD_CONFIG.baseUrl}${target}?finishedAd=false`
-            });
-        });
-
-        rewardedVideoAd.onClose(({ isEnded }) => {
-            console.log('onClose event emit', isEnded);
-            if (isEnded) {
-                console.log('有人看完广告');
-                
-                this.setData({
-                    webviewUrl: `${AD_CONFIG.baseUrl}${target}?finishedAd=true`
-                });
-            } else {
-                console.log('有人没看完广告');
-               
-                this.setData({
-                    webviewUrl: `${AD_CONFIG.baseUrl}${target}?finishedAd=false`
-                });
-            }
-        });
-
-        rewardedVideoAd.show()
-            .catch(() => {
-                rewardedVideoAd.load()
-                    .then(() => rewardedVideoAd.show())
-                    .catch(err => {
-                        console.log('激励视频广告显示失败', err);
-                        
-                    });
-            });
+    onPayTap: function () {
+        if (this.data.paying) return;
+        this.setData({ paying: true });
+        this.createOrderAndPay();
     },
 
-    showInterstitialAd() {
-        const interstitialAd = ks.createInterstitialAd({
-            type: AD_CONFIG.interstitial.type,
-            unitId: AD_CONFIG.interstitial.unitId,
-        });
+    async createOrderAndPay() {
+        const { target, openid } = this.data;
+        const productId = target.includes('child-travel-map') ? 'child-travel-map' : 'parent-type-test';
+        const productName = target.includes('child-travel-map') ? '孩子足迹地图生成' : '测测你是哪种家长类型';
+        const amount = 100;
 
+        ks.showLoading({ title: '创建订单...' });
+
+        try {
+            const res = await this.request({
+                url: `${API_BASE}/api/pay/create-order`,
+                method: 'POST',
+                header: { 'Content-Type': 'application/json' },
+                data: JSON.stringify({ openid, productId, productName, amount })
+            });
+
+            const data = JSON.parse(res.data);
+            if (!data.success) {
+                throw new Error(data.error || '创建订单失败');
+            }
+
+            const order = data.data;
+            console.log('[pay] order created:', order.orderId);
+            ks.hideLoading();
+
+            // 调起快手支付
+            ks.pay({
+                orderInfo: {
+                    appId: order.appId,
+                    prepayId: order.prepayId,
+                    nonceStr: order.nonceStr,
+                    timeStamp: order.timeStamp,
+                    sign: order.sign
+                },
+                success: (res) => {
+                    console.log('[pay] success:', res);
+                    this.handlePaySuccess(order.orderId);
+                },
+                fail: (err) => {
+                    console.error('[pay] fail:', err);
+                    ks.showToast({ title: '支付未完成', icon: 'none' });
+                    this.setData({ paying: false });
+                }
+            });
+        } catch (err) {
+            console.error('[pay] error:', err);
+            ks.hideLoading();
+            ks.showToast({ title: '创建订单失败', icon: 'none' });
+            this.setData({ paying: false });
+        }
+    },
+
+    handlePaySuccess: function (orderId) {
+        // 通知后端确认
+        this.request({
+            url: `${API_BASE}/api/pay/notify`,
+            method: 'POST',
+            header: { 'Content-Type': 'application/json' },
+            data: JSON.stringify({ out_order_no: orderId, result: 'SUCCESS' })
+        }).catch(() => {});
+
+        ks.showToast({ title: '支付成功', icon: 'success' });
+
+        // 重新加载 webview，追加 ?paid=1
+        const { webviewUrl } = this.data;
+        const separator = webviewUrl.includes('?') ? '&' : '?';
+        this.setData({
+            webviewUrl: webviewUrl + separator + 'paid=1',
+            paying: false
+        });
+    },
+
+    request: function (options) {
+        return new Promise((resolve, reject) => {
+            const task = ks.request({
+                ...options,
+                success: resolve,
+                fail: reject
+            });
+        });
+    },
+
+    showInterstitialAd: function () {
+        const interstitialAd = ks.createInterstitialAd({
+            type: 100033847,
+            unitId: 100180752,
+        });
         interstitialAd.onLoad(() => {
-            console.log('插屏广告已加载');
             interstitialAd.show().catch(err => {
                 console.log('插屏广告展示失败', err);
             });
         });
-
         interstitialAd.onError((res) => {
             console.log('插屏广告出错', res);
         });
-
-        interstitialAd.onClose(() => {
-            console.log('插屏广告已关闭');
-        });
-
         interstitialAd.load().catch(err => {
             console.log('插屏广告加载失败', err);
         });
     },
-    
+
     onMessage: function (event) {
         console.log('[rewardedWebview] onMessage:', event);
-        const { type, data } = event.detail || {};
-        if (type === 'REQUEST_PAYMENT' && data) {
-            const { orderId, appId, prepayId, nonceStr, timeStamp, sign, returnUrl } = data;
-            const payUrl = '/pages/pay/pay?orderId=' + encodeURIComponent(orderId || '') +
-                '&appId=' + encodeURIComponent(appId || '') +
-                '&prepayId=' + encodeURIComponent(prepayId || '') +
-                '&nonceStr=' + encodeURIComponent(nonceStr || '') +
-                '&timeStamp=' + encodeURIComponent(timeStamp || '') +
-                '&sign=' + encodeURIComponent(sign || '') +
-                '&returnUrl=' + encodeURIComponent(returnUrl || '');
-            ks.navigateTo({ url: payUrl });
-        }
     },
 
     onShareAppMessage: function () {
         return {
             title: '家长爱',
             path: '/pages/rewardedWebview/rewardedWebview'
-        }
+        };
     }
-})
+});
