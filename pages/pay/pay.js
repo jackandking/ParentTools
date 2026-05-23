@@ -82,7 +82,8 @@ Page({
                 prepayId: orderInfo.prepayId,
                 nonceStr: orderInfo.nonceStr,
                 timeStamp: orderInfo.timeStamp,
-                sign: orderInfo.sign
+                sign: orderInfo.sign,
+                serviceId: 1
             },
             success: (res) => {
                 console.log('[pay page] Payment success:', res);
