@@ -77,13 +77,13 @@ Page({
         console.log('[pay page] Starting ks.pay:', orderInfo);
 
         ks.pay({
+            serviceId: 1,
             orderInfo: {
                 appId: orderInfo.appId,
                 prepayId: orderInfo.prepayId,
                 nonceStr: orderInfo.nonceStr,
                 timeStamp: orderInfo.timeStamp,
-                sign: orderInfo.sign,
-                serviceId: 1
+                sign: orderInfo.sign
             },
             success: (res) => {
                 console.log('[pay page] Payment success:', res);
