@@ -5,12 +5,12 @@
         <text class="unit">元</text>
     </view>
 
-    <view class="loading-area" wx:if="{{paying && !errorMsg}}">
+    <view class="loading-area" ks:if="{{paying && !errorMsg}}">
         <view class="spinner"></view>
         <text class="loading-text">正在调起支付...</text>
     </view>
 
-    <view class="error-area" wx:if="{{errorMsg}}">
+    <view class="error-area" ks:if="{{errorMsg}}">
         <text class="error-icon">❌</text>
         <text class="error-text">{{errorMsg}}</text>
         <button class="btn-back" bindtap="goBack">返回</button>
