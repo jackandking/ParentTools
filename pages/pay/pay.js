@@ -77,7 +77,7 @@ Page({
         console.log('[pay page] Starting ks.pay:', orderInfo);
 
         ks.pay({
-            serviceId: 1,
+            serviceId: '1',
             orderInfo: {
                 appId: orderInfo.appId,
                 prepayId: orderInfo.prepayId,
