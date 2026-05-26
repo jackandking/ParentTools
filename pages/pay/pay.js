@@ -92,10 +92,10 @@ Page({
         totalAmount: 1,
         subject: '真实支付测试商品',
         body: '用于真实支付回归测试',
-        paymentChannel: null, // paymentChannel来自payment-list组件
+        paymentChannel: null, // 当前仅支持微信支付
         orderChannel: null, // 订单实际创建时使用的渠道
-        showPaymentList: false, // 是否显示支付渠道列表
-        paymentListInitialized: false, // 支付渠道列表是否初始化成功
+        showPaymentList: false, // 保留字段，当前不展示支付渠道切换
+        paymentListInitialized: false, // 支付方式已初始化
         paymentParams: null, // 存储的支付参数
         amount: '0.01', // 默认金额，单位：元
         productName: '解锁完整报告', // 默认商品名称
@@ -133,7 +133,7 @@ Page({
             body: decodeURIComponent(options.body || '用于真实支付回归测试')
         });
 
-        // 初始化支付渠道列表组件
+        // 当前仅支持微信支付，直接初始化固定渠道
         this.initPaymentList();
 
         this.setData({
@@ -175,26 +175,22 @@ Page({
         this.clearPaymentTimeout();
     },
 
-    // 初始化支付渠道列表
+    // 初始化支付方式（当前仅支持微信支付）
     initPaymentList: function () {
-        console.log('[pay page DEBUG] Initializing payment list...');
-        
-        // 立即设置模拟paymentChannel，确保支付调用时有值
-        // 默认使用微信支付，但用户可以通过payment-list组件选择其他渠道
-        const mockPaymentChannel = {
-            provider: 'WECHAT', // 默认微信支付，用户可选择支付宝等
+        console.log('[pay page DEBUG] Initializing payment channel...');
+
+        const fixedPaymentChannel = {
+            provider: 'WECHAT',
             provider_channel_type: 'NORMAL'
         };
-        console.log('[pay page DEBUG] Setting default payment channel (WECHAT):', mockPaymentChannel);
+        console.log('[pay page DEBUG] Using fixed payment channel (WECHAT):', fixedPaymentChannel);
         this.setData({
-            paymentChannel: mockPaymentChannel,
+            paymentChannel: fixedPaymentChannel,
             paymentListInitialized: true,
-            showPaymentList: true
+            showPaymentList: false
         });
-        
-        // 组件会自动触发change事件
-        // 如果组件成功初始化，用户可以选择支付渠道，会覆盖默认值
-        console.log('[pay page DEBUG] Default payment channel set, user can select via payment-list component');
+
+        console.log('[pay page DEBUG] Fixed payment channel ready for confirmation');
     },
 
     getSelectedPaymentChannel: function () {

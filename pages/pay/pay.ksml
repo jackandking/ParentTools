@@ -1,8 +1,25 @@
 <view class="container">
     <view class="pay-info">
-        <text class="title">🔐 解锁完整报告</text>
-        <text class="price">1.00</text>
+        <text class="title">🔐 {{productName}}</text>
+        <text class="price">{{amount}}</text>
         <text class="unit">元</text>
+    </view>
+
+    <view class="payment-method-card" ks:if="{{paymentListInitialized}}">
+        <view class="payment-method-icon">💚</view>
+        <view class="payment-method-content">
+            <text class="payment-method-title">微信支付</text>
+            <text class="payment-method-desc">当前仅开放微信支付，支付完成后会自动返回</text>
+        </view>
+    </view>
+
+    <!-- 支付按钮区域 -->
+    <view class="button-area" ks:if="{{!paying && !errorMsg && paymentListInitialized}}">
+        <text class="payment-channel-info" ks:if="{{paymentChannel}}">
+            已为你准备好微信支付
+        </text>
+        <button class="btn-pay" bindtap="startPaymentWithParams">确认微信支付</button>
+        <text class="hint">支付成功后会自动回到当前页面</text>
     </view>
 
     <view class="loading-area" ks:if="{{paying && !errorMsg}}">
@@ -13,6 +30,9 @@
     <view class="error-area" ks:if="{{errorMsg}}">
         <text class="error-icon">❌</text>
         <text class="error-text">{{errorMsg}}</text>
-        <button class="btn-back" bindtap="goBack">返回</button>
+        <view class="button-group">
+            <button class="btn-retry" bindtap="onRetry">重试</button>
+            <button class="btn-back" bindtap="goBack">返回</button>
+        </view>
     </view>
 </view>
