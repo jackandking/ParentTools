@@ -10,11 +10,13 @@ const AD_CONFIG = {
     baseUrl: 'https://letmetryai.cn/'
 };
 
+const OPENID_STORAGE_KEY = 'kuaishou_openid';
+
 Page({
     data: {
         webviewUrl: ''
     },
-    onLoad: function (options) {
+    onLoad: async function (options) {
         console.log(options);
         const target = options.target;
         console.log('rewardedWebview target:', target);
@@ -25,13 +27,76 @@ Page({
         if (options.flow === 'rewarded') {
             this.showRewardedVideo(target);
         } else {
-            this.setData({
-                webviewUrl: `${AD_CONFIG.baseUrl}${target}`
-            });
+            const webviewUrl = await this.buildWebviewUrl(target);
+            this.setData({ webviewUrl });
 
             if (options.showAd === 'true') {
                 this.showInterstitialAd();
             }
+        }
+    },
+
+    async buildWebviewUrl(target, extraParams = {}) {
+        const url = new URL(target, AD_CONFIG.baseUrl);
+        const openid = await this.getOrFetchOpenid();
+        if (openid) {
+            url.searchParams.set('openid', openid);
+        }
+
+        Object.entries(extraParams).forEach(([key, value]) => {
+            if (value === undefined || value === null || value === '') {
+                url.searchParams.delete(key);
+            } else {
+                url.searchParams.set(key, String(value));
+            }
+        });
+
+        return url.toString();
+    },
+
+    async getOrFetchOpenid() {
+        try {
+            const cached = ks.getStorageSync(OPENID_STORAGE_KEY);
+            if (cached) {
+                console.log('rewardedWebview cached openid found');
+                return cached;
+            }
+        } catch (err) {
+            console.log('rewardedWebview read cached openid failed', err);
+        }
+
+        try {
+            const loginRes = await new Promise((resolve, reject) => {
+                ks.login({
+                    success: resolve,
+                    fail: reject
+                });
+            });
+
+            const code = loginRes && loginRes.code;
+            if (!code) {
+                return '';
+            }
+
+            const response = await new Promise((resolve, reject) => {
+                ks.request({
+                    url: 'https://letmetry.cloud/api/user/openid',
+                    method: 'POST',
+                    data: { code },
+                    success: resolve,
+                    fail: reject
+                });
+            });
+
+            const openid = response?.data?.data?.openid || response?.data?.openid || '';
+            if (openid) {
+                ks.setStorageSync(OPENID_STORAGE_KEY, openid);
+                console.log('rewardedWebview fetched openid success');
+            }
+            return openid;
+        } catch (err) {
+            console.log('rewardedWebview fetch openid failed', err);
+            return '';
         }
     },
 
@@ -47,23 +112,21 @@ Page({
 
         rewardedVideoAd.onError(({ errCode }) => {
             console.log('onError event emit', errCode);
-            this.setData({
-                webviewUrl: `${AD_CONFIG.baseUrl}${target}?finishedAd=false`
+            this.buildWebviewUrl(target, { finishedAd: false }).then((webviewUrl) => {
+                this.setData({ webviewUrl });
             });
         });
 
-        rewardedVideoAd.onClose(({ isEnded }) => {
+        rewardedVideoAd.onClose(async ({ isEnded }) => {
             console.log('onClose event emit', isEnded);
             if (isEnded) {
                 console.log('有人看完广告');
-                this.setData({
-                    webviewUrl: `${AD_CONFIG.baseUrl}${target}?finishedAd=true`
-                });
+                const webviewUrl = await this.buildWebviewUrl(target, { finishedAd: true });
+                this.setData({ webviewUrl });
             } else {
                 console.log('有人没看完广告');
-                this.setData({
-                    webviewUrl: `${AD_CONFIG.baseUrl}${target}?finishedAd=false`
-                });
+                const webviewUrl = await this.buildWebviewUrl(target, { finishedAd: false });
+                this.setData({ webviewUrl });
             }
         });
 
