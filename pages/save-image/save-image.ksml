@@ -1,0 +1,24 @@
+<view class="container">
+    <view class="card">
+        <view class="icon">{{saved ? '✅' : (saving ? '💾' : '🖼️')}}</view>
+        <text class="title">
+            {{saved ? '已保存到系统相册' : (saving ? '正在保存图片...' : '保存图片')}}
+        </text>
+        <text class="desc" ks:if="{{saving}}">
+            正在调用快手原生能力下载并保存图片，请稍候
+        </text>
+        <text class="desc success" ks:if="{{saved}}">
+            保存成功，正在返回刚才的页面
+        </text>
+        <text class="desc error" ks:if="{{errorMsg}}">
+            {{errorMsg}}
+        </text>
+
+        <view class="button-group" ks:if="{{!saving}}">
+            <button class="btn btn-primary" bindtap="saveImage" ks:if="{{!saved}}">重新保存</button>
+            <button class="btn btn-secondary" bindtap="previewImage">预览图片</button>
+            <button class="btn btn-secondary" bindtap="openSetting" ks:if="{{errorMsg}}">打开授权设置</button>
+            <button class="btn btn-secondary" bindtap="goBack">返回页面</button>
+        </view>
+    </view>
+</view>

@@ -3,7 +3,8 @@
     "pages/index/index",
     "pages/rewardedWebview/rewardedWebview",
     "pages/showRewardedVideoAd/showRewardedVideoAd",
-    "pages/pay/pay"
+    "pages/pay/pay",
+    "pages/save-image/save-image"
   ],
   "window": {
     "backgroundTextStyle": "light",

@@ -1,0 +1,73 @@
+.container {
+    min-height: 100vh;
+    padding: 32px 24px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.card {
+    width: 100%;
+    max-width: 320px;
+    padding: 28px 24px;
+    background: rgba(255, 255, 255, 0.97);
+    border-radius: 18px;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16);
+    text-align: center;
+}
+
+.icon {
+    font-size: 44px;
+    margin-bottom: 12px;
+}
+
+.title {
+    display: block;
+    color: #1f2937;
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.desc {
+    display: block;
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.6;
+    margin-bottom: 18px;
+}
+
+.desc.success {
+    color: #047857;
+}
+
+.desc.error {
+    color: #dc2626;
+}
+
+.button-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.btn {
+    width: 100%;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 14px 18px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #feca57 0%, #ff9f43 100%);
+    color: #fff;
+}
+
+.btn-secondary {
+    background: #f3f4f6;
+    color: #1f2937;
+}
