@@ -3,6 +3,7 @@
 
 // 引入API服务
 const api = require('../../utils/api');
+const RETURN_URL_STORAGE_KEY = 'pending_payment_return_url';
 
 // 本地日志工具 - 用于远程调试时记录日志
 const debugLogger = {
@@ -90,15 +91,15 @@ Page({
         productId: 'test_product_real',
         quantity: 1,
         totalAmount: 1,
-        subject: '真实支付测试商品',
-        body: '用于真实支付回归测试',
+        subject: '支付订单',
+        body: '完成当前内容解锁支付',
         paymentChannel: null, // 当前仅支持微信支付
         orderChannel: null, // 订单实际创建时使用的渠道
         showPaymentList: false, // 保留字段，当前不展示支付渠道切换
         paymentListInitialized: false, // 支付方式已初始化
         paymentParams: null, // 存储的支付参数
         amount: '0.01', // 默认金额，单位：元
-        productName: '解锁完整报告', // 默认商品名称
+        productName: '确认支付', // 默认商品名称
         awaitingPaymentResult: false
     },
 
@@ -122,15 +123,22 @@ Page({
             returnUrl
         } = options;
 
+        const decodedReturnUrl = decodeURIComponent(options.returnUrl || '');
+        const cachedReturnUrl = decodedReturnUrl || ks.getStorageSync(RETURN_URL_STORAGE_KEY) || '';
+
+        if (decodedReturnUrl) {
+            ks.setStorageSync(RETURN_URL_STORAGE_KEY, decodedReturnUrl);
+        }
+
         this.setData({
             orderId: orderId || '',
-            returnUrl: decodeURIComponent(returnUrl || ''),
+            returnUrl: cachedReturnUrl,
             openid: decodeURIComponent(options.openid || ''),
             productId: decodeURIComponent(options.productId || 'test_product_real'),
             quantity: Number(options.quantity || 1),
             totalAmount: Number(options.totalAmount || 1),
-            subject: decodeURIComponent(options.subject || '真实支付测试商品'),
-            body: decodeURIComponent(options.body || '用于真实支付回归测试')
+            subject: decodeURIComponent(options.subject || '支付订单'),
+            body: decodeURIComponent(options.body || '完成当前内容解锁支付')
         });
 
         // 当前仅支持微信支付，直接初始化固定渠道
@@ -138,7 +146,7 @@ Page({
 
         this.setData({
             amount: (Number(options.totalAmount || 1) / 100).toFixed(2),
-            productName: decodeURIComponent(options.subject || '真实支付测试商品')
+            productName: decodeURIComponent(options.subject || '确认支付')
         });
 
         // 如果缺少支付参数，尝试从后端获取
@@ -402,7 +410,11 @@ Page({
                     // 更新金额和商品名称显示
                     // 注意：后端返回的amount是分，需要转换为元
                     const amountInYuan = paymentData.amount ? (paymentData.amount / 100).toFixed(2) : '0.01';
-                    const productName = paymentData.productName || '解锁完整报告';
+                    const productName =
+                        paymentData.subject ||
+                        paymentData.productName ||
+                        this.data.subject ||
+                        '确认支付';
                     
                     console.log('[pay page DEBUG] Amount conversion:', {
                         originalAmount: paymentData.amount,
@@ -658,7 +670,7 @@ Page({
     },
 
     getReturnTarget: function () {
-        const returnUrl = this.data.returnUrl;
+        const returnUrl = this.data.returnUrl || ks.getStorageSync(RETURN_URL_STORAGE_KEY) || '';
         if (!returnUrl) return null;
 
         try {
