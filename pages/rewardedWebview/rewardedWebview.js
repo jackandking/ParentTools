@@ -80,7 +80,7 @@ Page({
 
             const response = await new Promise((resolve, reject) => {
                 ks.request({
-                    url: 'https://letmetry.cloud/api/user/openid',
+                    url: 'https://letmetry.cn/api/user/openid',
                     method: 'POST',
                     data: { code },
                     success: resolve,
