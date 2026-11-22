@@ -1,8 +1,2 @@
-<web-view 
-    src="https://letmetryai.cn/parent-tools">
-    <!-- 客服入口（审核要求首页明显位置）：open-type=contact 唤起快手客服会话 -->
-    <button class="service-btn" open-type="contact" hover-class="none">
-        <text class="service-icon">💬</text>
-        <text class="service-label">客服</text>
-    </button>
-</web-view>
+<!-- 首页为 web-view 原生组件，内部 button 会被盖住不显示；客服入口由 H5 悬浮按钮 service-fab.js 承载 → 跳 pages/service 原生客服页 -->
+<web-view src="https://letmetryai.cn/parent-tools"></web-view>

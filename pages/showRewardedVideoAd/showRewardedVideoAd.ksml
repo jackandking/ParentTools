@@ -1,8 +1,2 @@
-<web-view 
-    src="{{webviewUrl}}">
-    <!-- 客服入口：投票结果页 -->
-    <button class="service-btn" open-type="contact" hover-class="none">
-        <text class="service-icon">💬</text>
-        <text class="service-label">客服</text>
-    </button>
-</web-view>
+<!-- web-view 原生组件内 button 会被盖住不显示；客服入口由 H5 悬浮按钮 service-fab.js 承载 -->
+<web-view src="{{webviewUrl}}"></web-view>

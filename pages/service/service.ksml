@@ -1,0 +1,12 @@
+<view class="service-page">
+    <view class="service-card">
+        <view class="service-emoji">💬</view>
+        <view class="service-title">联系客服</view>
+        <view class="service-desc">使用中有任何问题？点击下方按钮，我们的客服会尽快为您解答。</view>
+        <button class="service-main-btn" open-type="contact" hover-class="none">
+            <text class="btn-icon">🎧</text>
+            <text class="btn-text">在线客服</text>
+        </button>
+        <view class="service-tip">服务时间：9:00 - 21:00</view>
+    </view>
+</view>

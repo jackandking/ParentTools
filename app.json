@@ -4,7 +4,8 @@
     "pages/rewardedWebview/rewardedWebview",
     "pages/showRewardedVideoAd/showRewardedVideoAd",
     "pages/pay/pay",
-    "pages/save-image/save-image"
+    "pages/save-image/save-image",
+    "pages/service/service"
   ],
   "window": {
     "backgroundTextStyle": "light",
