@@ -3,10 +3,6 @@ const AD_CONFIG = {
         type: 100011056,
         unitId: 100180751,
     },
-    interstitial: {
-        type: 100033847,
-        unitId: 100180752,
-    },
     baseUrl: 'https://letmetryai.cn/'
 };
 

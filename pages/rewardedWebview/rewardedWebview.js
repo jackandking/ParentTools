@@ -3,10 +3,6 @@ const AD_CONFIG = {
         type: 100011056,
         unitId: 100180751,
     },
-    interstitial: {
-        type: 100033847,
-        unitId: 100180752,
-    },
     baseUrl: 'https://letmetryai.cn/'
 };
 
@@ -29,10 +25,7 @@ Page({
         } else {
             const webviewUrl = await this.buildWebviewUrl(target);
             this.setData({ webviewUrl });
-
-            if (options.showAd === 'true') {
-                this.showInterstitialAd();
-            }
+            // 插屏广告已移除：onLoad 自动弹插屏被快手判「多次主动弹出广告」驳回（1.0.3）
         }
     },
 
@@ -138,32 +131,6 @@ Page({
                         console.log('激励视频广告显示失败', err);
                     });
             });
-    },
-
-    showInterstitialAd() {
-        const interstitialAd = ks.createInterstitialAd({
-            type: AD_CONFIG.interstitial.type,
-            unitId: AD_CONFIG.interstitial.unitId,
-        });
-
-        interstitialAd.onLoad(() => {
-            console.log('插屏广告已加载');
-            interstitialAd.show().catch(err => {
-                console.log('插屏广告展示失败', err);
-            });
-        });
-
-        interstitialAd.onError((res) => {
-            console.log('插屏广告出错', res);
-        });
-
-        interstitialAd.onClose(() => {
-            console.log('插屏广告已关闭');
-        });
-
-        interstitialAd.load().catch(err => {
-            console.log('插屏广告加载失败', err);
-        });
     },
 
     onShareAppMessage: function () {
