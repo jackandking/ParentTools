@@ -55,6 +55,16 @@
     margin-top: -10px;
 }
 
+.diag {
+    display: block;
+    color: #9ca3af;
+    font-size: 10px;
+    line-height: 1.4;
+    margin-top: 8px;
+    word-break: break-all;
+    text-align: left;
+}
+
 .button-group {
     display: flex;
     flex-direction: column;

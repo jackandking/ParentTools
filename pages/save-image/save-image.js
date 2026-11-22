@@ -4,7 +4,8 @@ Page({
         returnUrl: '',
         saving: false,
         saved: false,
-        errorMsg: ''
+        errorMsg: '',
+        diagnostic: ''
     },
 
     onLoad(options) {
@@ -31,72 +32,91 @@ Page({
             errorMsg: ''
         });
 
-        // 安卓已知坑（v1.0.9 修复）：downloadFile 用 tempFilePath 时扩展名是 unknown/无后缀，
-        // saveImageToPhotosAlbum 无法解码 → "fail decode image fail:kwfile:///tmp/xxx"。
-        // 正解：downloadFile 传 filePath 指定带 .jpg 后缀的本地用户路径（快手官方文档支持），
-        // 保存时用返回的 res.filePath。服务端 /image/upload 把 PNG 压成 JPEG，故后缀为 .jpg。
+        // v1.0.10 多策略修复：安卓 downloadFile 的 tempFilePath 无 .jpg 后缀 →
+        // saveImageToPhotosAlbum 报 "decode image fail"。v1.0.9 用 ks.env.USER_DATA_PATH
+        // 但那是小游戏 API，小程序 ks.env 常为 undefined → 修复静默失效。
+        // 本版不猜 API：依次尝试多个带 .jpg 后缀的 filePath 候选，任一保存成功即止；
+        // 全失败则降级预览长按（真机已验证可用）。并把诊断串外显便于定位。
+        const ts = Date.now();
+        const candidates = [];
+        // 候选1：快手小程序已知用户目录协议 kwfile://usr（掘金踩坑纪要实证）
+        candidates.push(`kwfile://usr/footprint-${ts}.jpg`);
+        // 候选2：若平台暴露了 USER_DATA_PATH 则用之（兼容个别版本）
         const userDataPath = ks.env && ks.env.USER_DATA_PATH;
-        const localPath = userDataPath
-            ? `${userDataPath}/footprint-${Date.now()}.jpg`
-            : '';
+        if (userDataPath && userDataPath.indexOf('footprint') < 0) {
+            candidates.push(`${userDataPath}/footprint-${ts}.jpg`);
+        }
+        // 候选3：不带协议的 usr 路径
+        candidates.push(`usr/footprint-${ts}.jpg`);
 
-        try {
-            const downloadRes = await new Promise((resolve, reject) => {
-                const opts = {
-                    url: this.data.imageUrl,
-                    success: resolve,
-                    fail: reject
-                };
-                if (localPath) opts.filePath = localPath;
-                ks.downloadFile(opts);
-            });
+        const attempts = [];
+        let saved = false;
+        let lastErr = '';
 
-            // 优先带后缀的 filePath；老平台无 USER_DATA_PATH 时才退回 tempFilePath
-            const filePath = downloadRes.filePath || downloadRes.tempFilePath || downloadRes.apFilePath;
-            if (!filePath) {
-                throw new Error('未获取到本地图片路径');
-            }
-
-            await new Promise((resolve, reject) => {
-                ks.saveImageToPhotosAlbum({
-                    filePath,
-                    success: resolve,
-                    fail: reject
+        for (let i = 0; i < candidates.length && !saved; i++) {
+            const targetPath = candidates[i];
+            try {
+                const downloadRes = await new Promise((resolve, reject) => {
+                    ks.downloadFile({
+                        url: this.data.imageUrl,
+                        filePath: targetPath,
+                        success: resolve,
+                        fail: reject
+                    });
                 });
-            });
-
-            // 用户目录文件不会自动清理，保存后删除（失败不影响主流程）
-            if (localPath && filePath === localPath) {
+                const fp = downloadRes.filePath || targetPath;
+                attempts.push(`方案${i + 1}下载OK:${fp.slice(-32)}`);
+                await new Promise((resolve, reject) => {
+                    ks.saveImageToPhotosAlbum({ filePath: fp, success: resolve, fail: reject });
+                });
+                saved = true;
+                attempts.push(`方案${i + 1}保存成功`);
+                // 清理用户目录文件（失败不影响）
                 try {
                     const fs = ks.getFileSystemManager();
-                    if (fs) fs.unlink(localPath);
-                } catch (e) {
-                    console.warn('[save image] cleanup skipped:', e);
-                }
+                    if (fs && fs.unlink) fs.unlink(fp);
+                } catch (e) {}
+            } catch (err) {
+                const m = err && (err.errMsg || err.message) ? (err.errMsg || err.message) : '未知错误';
+                lastErr = m;
+                attempts.push(`方案${i + 1}失败:${String(m).slice(0, 45)}`);
             }
+        }
 
-            this.setData({
-                saving: false,
-                saved: true
-            });
+        // 最后一搏：不指定 filePath 拿 tempFilePath（旧路径），万一是别的原因
+        if (!saved) {
+            try {
+                const dRes = await new Promise((resolve, reject) => {
+                    ks.downloadFile({ url: this.data.imageUrl, success: resolve, fail: reject });
+                });
+                const tp = dRes.tempFilePath || dRes.filePath;
+                if (tp) {
+                    await new Promise((resolve, reject) => {
+                        ks.saveImageToPhotosAlbum({ filePath: tp, success: resolve, fail: reject });
+                    });
+                    saved = true;
+                    attempts.push('兜底tempFilePath保存成功');
+                }
+            } catch (err) {
+                lastErr = err && (err.errMsg || err.message) ? (err.errMsg || err.message) : '未知错误';
+                attempts.push(`兜底失败:${String(lastErr).slice(0, 45)}`);
+            }
+        }
 
-            ks.showToast({
-                title: '已保存到相册',
-                icon: 'success',
-                duration: 1200
-            });
+        const diag = `env=${ks.env ? '有' : '无'}${userDataPath ? '/有UD' : ''} | ` + attempts.join(' ; ');
+        console.log('[save image diag]', diag);
+        this.setData({ diagnostic: diag });
 
-            setTimeout(() => {
-                this.goBack();
-            }, 1200);
-        } catch (err) {
-            const rawMsg = err && (err.errMsg || err.message) ? (err.errMsg || err.message) : '';
-            console.error('[save image] save failed:', rawMsg);
-            // 降级：直接保存失败 → 自动打开预览让用户长按保存（真机已验证可用路径）
+        if (saved) {
+            this.setData({ saving: false, saved: true });
+            ks.showToast({ title: '已保存到相册', icon: 'success', duration: 1200 });
+            setTimeout(() => { this.goBack(); }, 1200);
+        } else {
+            // 全部失败 → 自动打开预览让用户长按（真机已验证可用）
             this.setData({
                 saving: false,
                 saved: false,
-                errorMsg: '直接保存未成功，已为你打开图片预览，长按图片即可存入相册'
+                errorMsg: '自动保存未成功，已打开图片预览：长按图片 → 保存到相册'
             });
             this.previewImage();
         }
