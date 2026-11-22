@@ -13,10 +13,13 @@
         <text class="desc error" ks:if="{{errorMsg}}">
             {{errorMsg}}
         </text>
+        <text class="desc tip" ks:if="{{errorMsg}}">
+            若预览已打开：长按图片 → 保存到相册
+        </text>
 
         <view class="button-group" ks:if="{{!saving}}">
             <button class="btn btn-primary" bindtap="saveImage" ks:if="{{!saved}}">重新保存</button>
-            <button class="btn btn-secondary" bindtap="previewImage">预览图片</button>
+            <button class="btn btn-secondary" bindtap="previewImage">打开预览·长按保存</button>
             <button class="btn btn-secondary" bindtap="openSetting" ks:if="{{errorMsg}}">打开授权设置</button>
             <button class="btn btn-secondary" bindtap="goBack">返回页面</button>
         </view>

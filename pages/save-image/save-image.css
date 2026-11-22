@@ -45,6 +45,14 @@
 
 .desc.error {
     color: #dc2626;
+    font-size: 13px;
+    word-break: break-all;
+}
+
+.desc.tip {
+    color: #047857;
+    font-size: 13px;
+    margin-top: -10px;
 }
 
 .button-group {
