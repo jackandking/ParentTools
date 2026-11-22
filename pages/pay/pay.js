@@ -174,7 +174,7 @@ Page({
         const pendingOrderId = this.data.orderId || ks.getStorageSync('pending_payment_order_id');
         if (pendingOrderId) {
             console.log('[pay page DEBUG] onShow detected pending payment order:', pendingOrderId);
-            this.checkOrderStatusWithRetry(pendingOrderId, 8, 2000);
+            this.checkOrderStatusWithRetry(pendingOrderId, 15, 3000);
         }
     },
 
@@ -251,8 +251,10 @@ Page({
             quantity: this.data.quantity,
             total_amount: this.data.totalAmount,
             subject: this.data.subject,
-            body: this.data.body,
-            provider: paymentChannel
+            body: this.data.body
+            // 不传 provider：未使用官方支付渠道列表组件时，预下单与 ks.pay 均不应传 paymentChannel，
+            // 走默认收银台模式（文档明确承诺「支付后返回小程序」）；手动传渠道会绕过收银台直接跳微信，
+            // 返回链路不可靠（曾导致支付后回不到小程序）
         };
 
         console.log('[pay page DEBUG] Creating order for selected channel:', orderData);
@@ -530,24 +532,15 @@ Page({
                 order_no: order_no,
                 order_info_token: order_info_token
             }
+            // 不传 paymentChannel：未使用官方支付渠道列表组件时，由 ks.pay fallback 到默认收银台，
+            // 收银台模式由平台负责「支付后返回小程序」
         };
-
-        const paymentChannel = this.getSelectedPaymentChannel();
-        console.log('[pay page DEBUG] Using selected paymentChannel:', paymentChannel);
-        payParams.paymentChannel = paymentChannel;
-        
-        // 记录支付渠道信息
-        console.log('[pay page DEBUG] Payment channel set to:', {
-            ...paymentChannel,
-            note: '支付渠道必须与预下单时保持一致'
-        });
 
         console.log('[pay page DEBUG] Final ks.pay params:', payParams);
 
         const createPayOptions = (extraOptions = {}) => ({
             serviceId: payParams.serviceId,
             orderInfo: payParams.orderInfo,
-            paymentChannel: payParams.paymentChannel,
             ...extraOptions,
             success: (res2) => {
                 ks.removeStorageSync('pending_payment_order_id');
@@ -582,7 +575,6 @@ Page({
                     order_no: options.orderInfo.order_no,
                     order_info_token: options.orderInfo.order_info_token ? '***' + options.orderInfo.order_info_token.slice(-10) : 'empty'
                 },
-                paymentChannel: options.paymentChannel,
                 payType: options.payType || 'not-set'
             });
         };
