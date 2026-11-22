@@ -1,3 +1,8 @@
 <web-view 
     src="https://letmetryai.cn/parent-tools">
+    <!-- 客服入口（审核要求首页明显位置）：open-type=contact 唤起快手客服会话 -->
+    <button class="service-btn" open-type="contact" hover-class="none">
+        <text class="service-icon">💬</text>
+        <text class="service-label">客服</text>
+    </button>
 </web-view>

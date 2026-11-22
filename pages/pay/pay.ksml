@@ -35,4 +35,10 @@
             <button class="btn-back" bindtap="goBack">返回</button>
         </view>
     </view>
+
+    <!-- 客服入口（审核要求订单页明显位置）：支付有问题可联系客服 -->
+    <button class="service-btn" open-type="contact" hover-class="none">
+        <text class="service-icon">💬</text>
+        <text class="service-label">客服</text>
+    </button>
 </view>

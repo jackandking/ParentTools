@@ -1,1 +1,7 @@
-<web-view src="{{webviewUrl}}"></web-view>
+<web-view src="{{webviewUrl}}">
+    <!-- 客服入口：覆盖书单/订单等所有 H5 落地页 -->
+    <button class="service-btn" open-type="contact" hover-class="none">
+        <text class="service-icon">💬</text>
+        <text class="service-label">客服</text>
+    </button>
+</web-view>

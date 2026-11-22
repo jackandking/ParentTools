@@ -1,3 +1,8 @@
 <web-view 
     src="{{webviewUrl}}">
+    <!-- 客服入口：投票结果页 -->
+    <button class="service-btn" open-type="contact" hover-class="none">
+        <text class="service-icon">💬</text>
+        <text class="service-label">客服</text>
+    </button>
 </web-view>
