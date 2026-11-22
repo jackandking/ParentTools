@@ -53,7 +53,8 @@ App({
           if (target) {
             console.log('[pay fallback] 检测到已支付订单，跳回结果页:', target);
             ks.redirectTo({
-              url: `/pages/rewardedWebview/rewardedWebview?target=${encodeURIComponent(target)}`,
+              // paid=1 必须透传到 H5：否则 H5 不触发生图，用户回到小程序只看到选省份页（11-22 真机反馈）
+              url: `/pages/rewardedWebview/rewardedWebview?target=${encodeURIComponent(target)}&paid=1`,
               fail: function (err) { console.error('[pay fallback] redirectTo failed:', err); }
             });
           } else {

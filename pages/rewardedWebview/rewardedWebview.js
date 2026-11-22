@@ -23,7 +23,10 @@ Page({
         if (options.flow === 'rewarded') {
             this.showRewardedVideo(target);
         } else {
-            const webviewUrl = await this.buildWebviewUrl(target);
+            // paid=1 由 app.js 支付兜底透传，必须继续传给 H5 才能触发自动生图/展示已付费结果
+            const extraParams = {};
+            if (options.paid === '1') extraParams.paid = '1';
+            const webviewUrl = await this.buildWebviewUrl(target, extraParams);
             this.setData({ webviewUrl });
             // 插屏广告已移除：onLoad 自动弹插屏被快手判「多次主动弹出广告」驳回（1.0.3）
         }
