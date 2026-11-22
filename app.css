@@ -9,36 +9,37 @@
   box-sizing: border-box;
 }
 
-/* 全局客服入口（审核要求：首页/订单页等明显位置需有客服入口）*/
+/* 全局客服入口（审核要求：首页/订单页等明显位置需有客服入口）
+   注意：快手 CSS 不认 rpx（CI 会报 SyntaxMatchError 并丢弃该属性），统一用 px */
 .service-btn {
   position: fixed;
-  right: 24rpx;
-  bottom: 48rpx;
+  right: 12px;
+  bottom: 24px;
   z-index: 9999;
-  width: 112rpx;
-  height: 112rpx;
+  width: 56px;
+  height: 56px;
   line-height: 1.2;
-  padding: 12rpx 0;
+  padding: 6px 0;
   margin: 0;
   border: none;
-  border-radius: 56rpx;
+  border-radius: 28px;
   background: linear-gradient(135deg, #ff9a44 0%, #fc6076 100%);
   color: #fff;
-  font-size: 24rpx;
+  font-size: 12px;
   font-weight: bold;
   text-align: center;
-  box-shadow: 0 6rpx 20rpx rgba(252, 96, 118, 0.45);
+  box-shadow: 0 3px 10px rgba(252, 96, 118, 0.45);
 }
 .service-btn::after {
   border: none;
 }
 .service-icon {
   display: block;
-  font-size: 40rpx;
-  line-height: 44rpx;
+  font-size: 20px;
+  line-height: 22px;
 }
 .service-label {
   display: block;
-  font-size: 22rpx;
-  line-height: 28rpx;
+  font-size: 11px;
+  line-height: 14px;
 }
