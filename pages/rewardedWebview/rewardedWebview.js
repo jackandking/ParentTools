@@ -26,6 +26,8 @@ Page({
             // paid=1 由 app.js 支付兜底透传，必须继续传给 H5 才能触发自动生图/展示已付费结果
             const extraParams = {};
             if (options.paid === '1') extraParams.paid = '1';
+            // pl_from=share 透传给 H5 埋点，用来识别「分享带来的首次完成」
+            if (options.pl_from) extraParams.pl_from = options.pl_from;
             const webviewUrl = await this.buildWebviewUrl(target, extraParams);
             this.setData({ webviewUrl });
             // 插屏广告已移除：onLoad 自动弹插屏被快手判「多次主动弹出广告」驳回（1.0.3）
@@ -137,9 +139,21 @@ Page({
     },
 
     onShareAppMessage: function () {
+        // 从当前 webview URL 反推出 target，让对方落到同一个工具页，而不是通用首页
+        let target = 'parent-tools/minority-card';
+        const current = this.data.webviewUrl || '';
+        const match = current.match(/[?&]target=([^&]+)/);
+        if (match) {
+            try {
+                target = decodeURIComponent(match[1]);
+            } catch (error) {
+                target = 'parent-tools/minority-card';
+            }
+        }
         return {
-            title: '家长爱',
-            path: '/pages/rewardedWebview/rewardedWebview'
+            title: '家长爱 · 只有少数家长这么选',
+            path: '/pages/rewardedWebview/rewardedWebview?target=' +
+                encodeURIComponent(target) + '&pl_from=share'
         };
     }
 });
